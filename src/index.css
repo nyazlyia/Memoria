@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --maroon: #5d0f0f;
+  --lime: #d7ff94;
+}
+
+/* Placard Next local font */
+@font-face {
+  font-family: "Placard Next";
+  src: url("/fonts/PlacardNextBold.TTF") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* simple horizontal scroll animation for repeating text */
+@keyframes scroll-left {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+@keyframes scroll-right {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+.repeater-wrap {
+  overflow: hidden;
+  white-space: nowrap;
+}
+.repeater {
+  display: inline-flex;
+  gap: 2rem;
+  align-items: center;
+  animation: scroll-left 18s linear infinite;
+}
+.repeater.reverse {
+  animation: scroll-right 18s linear infinite;
+}
+
+/* fonts */
+.h1-font {
+  font-family: "Anton", system-ui, sans-serif;
+}
+.subtitle-font {
+  font-family: "Playfair Display", serif;
+}
+.libre-bodoni {
+  font-family: "Libre Bodoni", "Bodoni Moda", serif;
+}
+.placard-next {
+  font-family: "Placard Next", system-ui, sans-serif;
+}
+
+/* Card styles */
+.card {
+  width: 90vw;
+  max-width: 100%;
+  aspect-ratio: 380 / 300;
+  border-radius: 80px;
+}
+
+/* small responsive tweaks */
+@media (max-width: 640px) {
+  .big-title {
+    font-size: 6rem;
+  }
+  .card {
+    max-width: 200px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .card {
+    width: 46vw;
+  }
+}
+
+@media (min-width: 1025px) {
+  .card {
+    width: 42vw;
+  }
+}
+
+/* Pick Frame button (bottom-centered pill) */
+.pick-frame-btn {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 40px;
+  background: var(--lime);
+  color: var(--maroon);
+  border: 2px solid var(--maroon);
+  padding: 14px 56px;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 28px;
+  letter-spacing: 6px;
+  box-shadow: 0 8px 12px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+}
+.pick-frame-btn:hover {
+  transform: translateX(-50%) translateY(-3px);
+}
+
+/* disabled state: don't animate or allow pointer events */
+.pick-frame-btn[disabled] {
+  pointer-events: none;
+  transform: translateX(-50%);
+  opacity: 0.6;
+}
