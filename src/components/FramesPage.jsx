@@ -1,18 +1,23 @@
 import React, { useState } from "react";
-import LeftArrow from "./components/LeftArrow";
+import LeftArrow from "./LeftArrow";
 
-const solidFiles = ["11.png", "12.png", "13.png", "14.png"];
+const solidFiles = [
+  "Stripe S-1.png",
+  "Strip S-2.png",
+  "13.png",
+  "14.png",
+  "12.png",
+];
 
 export default function FramesPage({ theme, onBack }) {
-  // Build URLs for images in src/assets/solid
   const imgs = solidFiles.map(
-    (name) => new URL(`./assets/solid/${name}`, import.meta.url).href
+    (name) => new URL(`../assets/solid/${name}`, import.meta.url).href,
   );
 
   const [selected, setSelected] = useState(null);
 
   return (
-    <div className="min-h-screen bg-white p-6 text-[var(--maroon)]">
+    <div className="min-h-screen bg-[#B8EBFC] p-6 text-[var(--maroon)]">
       <div className="flex items-start">
         <button
           onClick={() => onBack()}
@@ -23,10 +28,8 @@ export default function FramesPage({ theme, onBack }) {
         </button>
       </div>
 
-      {/* Button styled to match the provided design (bottom-centered pill) */}
-
-      <div className="max-w-6xl mx-auto mt-8 px-4">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="max-w-4xl mx-auto mt-8 px-4">
+        <div className="grid grid-cols-5 gap-6">
           {imgs.map((src, i) => (
             <div
               key={i}
@@ -37,10 +40,8 @@ export default function FramesPage({ theme, onBack }) {
               onKeyDown={(e) =>
                 (e.key === "Enter" || e.key === " ") && setSelected(i)
               }
-              className={`rounded-xl overflow-hidden bg-white transition-transform duration-150 focus:outline-none ${
-                selected === i
-                  ? "ring-4 ring-[var(--maroon)] scale-105"
-                  : "border-2 border-[var(--maroon)]"
+              className={`transition-transform duration-150 focus:outline-none ${
+                selected === i ? "scale-105" : ""
               }`}
             >
               <img
@@ -53,7 +54,6 @@ export default function FramesPage({ theme, onBack }) {
         </div>
       </div>
 
-      {/* Bottom-centered pick button (matches the mockup) */}
       <button
         className={`pick-frame-btn placard-next uppercase ${
           selected === null ? "opacity-50 cursor-not-allowed" : ""

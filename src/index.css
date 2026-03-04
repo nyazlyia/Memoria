@@ -61,6 +61,12 @@
   font-family: "Placard Next", system-ui, sans-serif;
 }
 
+.libre-bodoni-italic {
+  font-family: 'Libre Bodoni', serif;
+  font-weight: 400;
+  font-style: italic; /* Pakai file italic asli */
+}
+
 /* Card styles */
 .card {
   width: 90vw;

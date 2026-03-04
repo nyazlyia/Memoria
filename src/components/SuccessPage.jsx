@@ -1,7 +1,7 @@
 import React from "react";
-import LeftArrow from "./components/LeftArrow";
+import LeftArrow from "./LeftArrow";
 
-export default function SuccessPage({ info, onBackHome }) {
+export default function SuccessPage({ onBackHome }) {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center p-6 text-[var(--maroon)]">
       <div className="absolute top-6 left-6">
