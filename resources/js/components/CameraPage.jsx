@@ -130,15 +130,15 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.height = frameImg.height;
 
     // Vertical strip frame settings untuk 3 photo areas
-    const photoWidth = canvas.width * 0.72;
-    const photoHeight = canvas.height * 0.19;
+    const photoWidth = canvas.width * 0.76;
+    const photoHeight = canvas.height * 0.205;
     const startX = (canvas.width - photoWidth) / 2; // Center horizontally
 
-    // Vertikal positions untuk 3 rectangles
+    // Vertikal positions untuk 3 rectangles (moved down)
     const positions = [
-      canvas.height * 0.145,  // Photo 1 (top)
-      canvas.height * 0.375,  // Photo 2 (middle)
-      canvas.height * 0.605,  // Photo 3 (bottom)
+      canvas.height * 0.125,  // Photo 1 (top) - moved down
+      canvas.height * 0.355,  // Photo 2 (middle) - moved down
+      canvas.height * 0.585,  // Photo 3 (bottom) - moved down
     ];
 
     // Border radius untuk setiap rectangle
@@ -162,6 +162,11 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
 
             // Clip dengan rounded rectangle sesuai position
             ctx.save();
+
+            // Reset stroke settings untuk menghindari random lines
+            ctx.strokeStyle = 'transparent';
+            ctx.lineWidth = 0;
+
             ctx.beginPath();
 
             if (index === 0) {
