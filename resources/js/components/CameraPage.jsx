@@ -115,7 +115,7 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     return () => clearTimeout(timer);
   }, [countdown, capturing]);
 
-  // Gabung foto + frame 
+  // Gabung foto + frame
   const combinePhotos = (photoList) => {
     if (!frameImageRef.current) {
       onPhotoTaken(photoList[0]);
@@ -129,16 +129,15 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.width = frameImg.width;
     canvas.height = frameImg.height;
 
-    //  SIZE FOTO
-    const photoWidth = canvas.width * 0.7;
-    const photoHeight = canvas.height * 0.2;
-    const marginX = canvas.width * 0.15;
+    // Circular frame settings - adjust these based on your frame design
+    const circleRadius = Math.min(canvas.width, canvas.height) * 0.28; // Radius for photo circles
+    const centerX = canvas.width / 2; // Center horizontally
 
-    //  POSISI FOTO 
-    const positions = [
-      canvas.height * 0.20,
-      canvas.height * 0.43,
-      canvas.height * 0.66,
+    // Vertical positions for 3 photo circles (adjust these percentages as needed)
+    const circleCenters = [
+      canvas.height * 0.22,  // Top photo center
+      canvas.height * 0.50,  // Middle photo center
+      canvas.height * 0.78,  // Bottom photo center
     ];
 
     const imgs = photoList.map((src) => {
@@ -154,13 +153,43 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
         loaded++;
         if (loaded === 3) {
           imgs.forEach((photo, index) => {
+            const centerY = circleCenters[index];
+
+            // Create circular clipping region for each photo
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+
+            // Calculate photo dimensions to maintain aspect ratio while filling the circle
+            const photoAspect = photo.width / photo.height;
+            const diameter = circleRadius * 2;
+
+            let drawWidth, drawHeight, drawX, drawY;
+
+            if (photoAspect > 1) {
+              // Wider photo
+              drawHeight = diameter;
+              drawWidth = diameter * photoAspect;
+              drawX = centerX - drawWidth / 2;
+              drawY = centerY - diameter / 2;
+            } else {
+              // Taller photo
+              drawWidth = diameter;
+              drawHeight = diameter / photoAspect;
+              drawX = centerX - diameter / 2;
+              drawY = centerY - drawHeight / 2;
+            }
+
             ctx.drawImage(
               photo,
-              marginX,
-              positions[index],
-              photoWidth,
-              photoHeight
+              drawX,
+              drawY,
+              drawWidth,
+              drawHeight
             );
+            ctx.restore();
           });
 
           // frame di atas
