@@ -130,19 +130,19 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.height = frameImg.height;
 
     // Vertical strip frame settings untuk 3 photo areas
-    const photoWidth = canvas.width * 0.65;
-    const photoHeight = canvas.height * 0.175;
+    const photoWidth = canvas.width * 0.72;
+    const photoHeight = canvas.height * 0.19;
     const startX = (canvas.width - photoWidth) / 2; // Center horizontally
 
     // Vertikal positions untuk 3 rectangles
     const positions = [
-      canvas.height * 0.155,  // Photo 1 (top)
-      canvas.height * 0.388,  // Photo 2 (middle)
-      canvas.height * 0.620,  // Photo 3 (bottom)
+      canvas.height * 0.145,  // Photo 1 (top)
+      canvas.height * 0.375,  // Photo 2 (middle)
+      canvas.height * 0.605,  // Photo 3 (bottom)
     ];
 
     // Border radius untuk setiap rectangle
-    const cornerRadius = 25;
+    const cornerRadius = 15;
 
     const imgs = photoList.map((src) => {
       const img = new Image();
@@ -197,13 +197,16 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
             let drawWidth, drawHeight, drawX, drawY;
 
             if (photoAspect > frameAspect) {
-              drawWidth = photoWidth * photoAspect;
-              drawHeight = photoHeight;
-            } else {
+              // Photo is wider than the frame
               drawWidth = photoWidth;
               drawHeight = photoWidth / photoAspect;
+            } else {
+              // Photo is taller than the frame
+              drawWidth = photoHeight * photoAspect;
+              drawHeight = photoHeight;
             }
 
+            // Center the photo within the rectangle
             drawX = x + (photoWidth - drawWidth) / 2;
             drawY = y + (photoHeight - drawHeight) / 2;
 
