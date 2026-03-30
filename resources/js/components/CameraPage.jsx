@@ -11,9 +11,8 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
   const [capturing, setCapturing] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const frameImageRef = useRef(null);
-  const frameDimensionsRef = useRef({ width: 0, height: 0 });
 
-  // Load gambar frame
+  // Load frame
   useEffect(() => {
     if (!selectedFrame) return;
     const img = new Image();
@@ -21,27 +20,23 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     img.src = selectedFrame;
     img.onload = () => {
       frameImageRef.current = img;
-      frameDimensionsRef.current = { width: img.width, height: img.height };
     };
   }, [selectedFrame]);
 
-  // Minta akses kamera (tanpa mirror)
+  // Start camera
   useEffect(() => {
     async function startCamera() {
       try {
         const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user", // Kamera depan, tapi tidak mirror
-          },
+          video: { facingMode: "user" },
         });
         setStream(mediaStream);
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
-          // Pastikan video tidak dicerminkan (defaultnya tidak, tapi kita set style untuk mencegah jika ada CSS)
           videoRef.current.style.transform = "scaleX(1)";
         }
       } catch (err) {
-        setError("Tidak dapat mengakses kamera. Pastikan izin diberikan.");
+        setError("Tidak dapat mengakses kamera.");
       }
     }
     startCamera();
@@ -53,20 +48,22 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     };
   }, []);
 
-  // Fungsi mengambil satu foto
+  // Ambil foto
   const takePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return null;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
+
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    // Gambar video tanpa mirror
+
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
     return canvas.toDataURL("image/png");
   };
 
-  // Mulai capture
+  // Start capture
   const startCapture = () => {
     setCapturing(true);
     setPhotos([]);
@@ -74,175 +71,145 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     setShowCountdown(true);
   };
 
-  // Efek hitungan mundur
+  // Countdown logic
   useEffect(() => {
     if (!capturing || countdown === null) return;
 
     if (countdown === 0) {
-      setShowCountdown(false);
-      const photo = takePhoto();
-      if (photo) {
-        setPhotos((prev) => {
-          const newPhotos = [...prev, photo];
-          if (newPhotos.length === 3) {
-            // Selesai 3 foto, lanjut gabungkan
-            combinePhotos(newPhotos);
-            setCapturing(false);
-            setCountdown(null);
-          } else {
-            // Siapkan countdown untuk foto berikutnya
-            setCountdown(3);
-            setShowCountdown(true);
-          }
-          return newPhotos;
-        });
-      } else {
-        // Gagal, reset
-        setCapturing(false);
-        setCountdown(null);
+      const delay = setTimeout(() => {
         setShowCountdown(false);
-      }
-    } else {
-      const timer = setTimeout(() => {
-        setCountdown(countdown - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
+
+        const photo = takePhoto();
+
+        if (photo) {
+          setPhotos((prev) => {
+            const newPhotos = [...prev, photo];
+
+            if (newPhotos.length === 3) {
+              combinePhotos(newPhotos);
+              setCapturing(false);
+              setCountdown(null);
+            } else {
+              setTimeout(() => {
+                setCountdown(3);
+                setShowCountdown(true);
+              }, 1200);
+            }
+
+            return newPhotos;
+          });
+        } else {
+          setCapturing(false);
+          setCountdown(null);
+          setShowCountdown(false);
+        }
+      }, 1500);
+
+      return () => clearTimeout(delay);
     }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, [countdown, capturing]);
 
-  // Fungsi menggabungkan 3 foto dengan frame
+  // Gabung foto + frame 
   const combinePhotos = (photoList) => {
     if (!frameImageRef.current) {
-      // Fallback: kirim foto pertama saja
       onPhotoTaken(photoList[0]);
       return;
     }
 
     const frameImg = frameImageRef.current;
-    const frameWidth = frameImg.width;
-    const frameHeight = frameImg.height;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-    // Buat canvas hasil akhir
-    const resultCanvas = document.createElement("canvas");
-    resultCanvas.width = frameWidth;
-    resultCanvas.height = frameHeight;
-    const ctx = resultCanvas.getContext("2d");
+    canvas.width = frameImg.width;
+    canvas.height = frameImg.height;
 
-    const photoWidth = frameWidth * 0.8; // lebar foto 80% lebar frame
-    const photoHeight = frameHeight * 0.25; // tinggi foto 25% tinggi frame
-    const marginX = (frameWidth - photoWidth) / 2;
-    const marginY = frameHeight * 0.05; // jarak dari tepi atas/bawah
+    //  SIZE FOTO
+    const photoWidth = canvas.width * 0.7;
+    const photoHeight = canvas.height * 0.2;
+    const marginX = canvas.width * 0.15;
 
+    //  POSISI FOTO 
     const positions = [
-      { y: marginY },
-      { y: frameHeight / 2 - photoHeight / 2 },
-      { y: frameHeight - photoHeight - marginY },
+      canvas.height * 0.20,
+      canvas.height * 0.43,
+      canvas.height * 0.66,
     ];
 
-    // Muat semua foto sebagai image
-    const photoImages = photoList.map((src) => {
+    const imgs = photoList.map((src) => {
       const img = new Image();
       img.src = src;
       return img;
     });
 
     let loaded = 0;
-    photoImages.forEach((img, index) => {
+
+    imgs.forEach((img) => {
       img.onload = () => {
         loaded++;
         if (loaded === 3) {
-          // Gambar foto terlebih dahulu
-          ctx.clearRect(0, 0, frameWidth, frameHeight);
-          photoImages.forEach((photoImg, i) => {
+          imgs.forEach((photo, index) => {
             ctx.drawImage(
-              photoImg,
+              photo,
               marginX,
-              positions[i].y,
+              positions[index],
               photoWidth,
-              photoHeight,
+              photoHeight
             );
           });
-          // Gambar frame di atas
-          ctx.drawImage(frameImg, 0, 0, frameWidth, frameHeight);
-          // Hasil akhir
-          const finalImage = resultCanvas.toDataURL("image/png");
-          onPhotoTaken(finalImage);
+
+          // frame di atas
+          ctx.drawImage(frameImg, 0, 0);
+
+          const final = canvas.toDataURL("image/png");
+          onPhotoTaken(final);
         }
       };
     });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#B8EBFC] to-[#A0D8F0] p-6 text-[var(--maroon)]">
-      {/* Tombol back */}
-      <div className="flex items-start">
-        <button
-          onClick={onBack}
-          className="flex items-center gap-2 ml-2 mt-1 bg-white/30 backdrop-blur-sm p-2 rounded-full hover:bg-white/50 transition"
-          aria-label="Back"
-        >
-          <LeftArrow size={20} />
-        </button>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[#B8EBFC] to-[#A0D8F0] p-6">
+      <button onClick={onBack}>
+        <LeftArrow />
+      </button>
 
-      <div className="flex flex-col items-center justify-center mt-8">
-        <h1 className="libre-bodoni text-5xl font-bold mb-2 text-[var(--maroon)] drop-shadow-lg">
-          SELFIE TIME!
-        </h1>
-        <p className="text-xl mb-6 text-[var(--maroon)]">
-          Ambil 3 foto terbaikmu
-        </p>
+      <div className="flex flex-col items-center mt-8">
+        <h1 className="text-5xl font-bold">SELFIE TIME!</h1>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
+        <div className="relative w-full max-w-2xl rounded-xl overflow-hidden">
+          <video ref={videoRef} autoPlay muted className="w-full" />
 
-        {/* Area video */}
-        <div className="relative w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-auto bg-black"
-            style={{ transform: "scaleX(1)" }} // Pastikan tidak mirror
-          />
-          {/* Overlay countdown */}
           {showCountdown && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-60">
-              <span className="text-white text-9xl font-bold drop-shadow-2xl animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <span className="text-white text-9xl font-bold animate-pulse">
                 {countdown}
               </span>
             </div>
           )}
-          {/* Indikator progress foto */}
+
           {capturing && !showCountdown && (
-            <div className="absolute top-4 right-4 bg-white/80 text-[var(--maroon)] px-4 py-2 rounded-full font-bold">
+            <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full">
               Foto {photos.length + 1}/3
             </div>
           )}
         </div>
 
-        {/* Tombol mulai */}
         {!capturing && photos.length === 0 && (
-          <button
-            onClick={startCapture}
-            className="mt-8 bg-[var(--lime)] text-[var(--maroon)] border-2 border-[var(--maroon)] px-12 py-5 rounded-full placard-next font-bold text-3xl shadow-xl hover:scale-105 transition-transform hover:bg-[#c8ff9f]"
-          >
-            📸 MULAI FOTO (3x)
+          <button onClick={startCapture} className="mt-6 text-2xl">
+            📸 MULAI FOTO
           </button>
         )}
 
-        {/* Status capturing (saat jeda antar foto) */}
         {capturing && !showCountdown && photos.length < 3 && (
-          <div className="mt-8 text-xl">
-            <p>Mempersiapkan foto berikutnya...</p>
-          </div>
+          <p className="mt-4">Siap foto berikutnya...</p>
         )}
 
-        {/* Canvas tersembunyi untuk mengambil foto */}
         <canvas ref={canvasRef} style={{ display: "none" }} />
       </div>
     </div>
