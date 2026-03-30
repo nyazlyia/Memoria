@@ -137,8 +137,8 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     ctx.lineWidth = 0;
 
     // Vertical strip frame settings untuk 3 photo areas
-    const photoWidth = canvas.width * 0.78;
-    const photoHeight = canvas.height * 0.205;
+    const photoWidth = canvas.width * 0.80;
+    const photoHeight = canvas.height * 0.215;
     const startX = (canvas.width - photoWidth) / 2; // Center horizontally
 
     // Vertikal positions untuk 3 rectangles (lowered more with increased gaps)
