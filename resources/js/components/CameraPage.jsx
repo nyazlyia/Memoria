@@ -129,19 +129,20 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.width = frameImg.width;
     canvas.height = frameImg.height;
 
-    // Horizontal strip frame settings - adjust these based on your frame design
-    // The frame has 3 rectangular openings arranged horizontally
-    const photoCount = 3;
-    const photoWidth = canvas.width * 0.28; // Width of each photo rectangle
-    const photoHeight = canvas.height * 0.35; // Height of each photo rectangle
-    const photoY = canvas.height * 0.45; // Vertical position of photos
+    // Vertical strip frame settings untuk 3 photo areas
+    const photoWidth = canvas.width * 0.65;
+    const photoHeight = canvas.height * 0.175;
+    const startX = (canvas.width - photoWidth) / 2; // Center horizontally
 
-    // Horizontal positions for 3 photo rectangles
-    const photoPositions = [
-      canvas.width * 0.11,  // Left photo center
-      canvas.width * 0.50,  // Middle photo center
-      canvas.width * 0.88,  // Right photo center
+    // Vertikal positions untuk 3 rectangles
+    const positions = [
+      canvas.height * 0.155,  // Photo 1 (top)
+      canvas.height * 0.388,  // Photo 2 (middle)
+      canvas.height * 0.620,  // Photo 3 (bottom)
     ];
+
+    // Border radius untuk setiap rectangle
+    const cornerRadius = 25;
 
     const imgs = photoList.map((src) => {
       const img = new Image();
@@ -156,55 +157,61 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
         loaded++;
         if (loaded === 3) {
           imgs.forEach((photo, index) => {
-            const photoCenterX = photoPositions[index];
-            const photoX = photoCenterX - photoWidth / 2;
+            const x = startX;
+            const y = positions[index];
 
-            // Create rectangular clipping region for each photo
+            // Clip dengan rounded rectangle sesuai position
             ctx.save();
             ctx.beginPath();
-            ctx.rect(photoX, photoY, photoWidth, photoHeight);
+
+            if (index === 0) {
+              // Top: rounded top corners only
+              ctx.moveTo(x + cornerRadius, y);
+              ctx.lineTo(x + photoWidth - cornerRadius, y);
+              ctx.quadraticCurveTo(x + photoWidth, y, x + photoWidth, y + cornerRadius);
+              ctx.lineTo(x + photoWidth, y + photoHeight);
+              ctx.lineTo(x, y + photoHeight);
+              ctx.lineTo(x, y + cornerRadius);
+              ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
+            } else if (index === 1) {
+              // Middle: no rounded corners (straight rectangle)
+              ctx.rect(x, y, photoWidth, photoHeight);
+            } else {
+              // Bottom: rounded bottom corners only
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + photoWidth, y);
+              ctx.lineTo(x + photoWidth, y + photoHeight - cornerRadius);
+              ctx.quadraticCurveTo(x + photoWidth, y + photoHeight, x + photoWidth - cornerRadius, y + photoHeight);
+              ctx.lineTo(x + cornerRadius, y + photoHeight);
+              ctx.quadraticCurveTo(x, y + photoHeight, x, y + photoHeight - cornerRadius);
+              ctx.lineTo(x, y);
+            }
+
             ctx.closePath();
             ctx.clip();
 
             // Calculate photo dimensions using "cover" style scaling
-            // This ensures the photo completely fills the rectangle without distortion
             const photoAspect = photo.width / photo.height;
             const frameAspect = photoWidth / photoHeight;
 
             let drawWidth, drawHeight, drawX, drawY;
 
             if (photoAspect > frameAspect) {
-              // Photo is wider than the frame
               drawWidth = photoWidth * photoAspect;
               drawHeight = photoHeight;
             } else {
-              // Photo is taller than the frame
               drawWidth = photoWidth;
               drawHeight = photoWidth / photoAspect;
             }
 
-            // Center the photo within the rectangle
-            drawX = photoCenterX - drawWidth / 2;
-            drawY = photoY + (photoHeight - drawHeight) / 2;
+            drawX = x + (photoWidth - drawWidth) / 2;
+            drawY = y + (photoHeight - drawHeight) / 2;
 
-            ctx.drawImage(
-              photo,
-              drawX,
-              drawY,
-              drawWidth,
-              drawHeight
-            );
+            ctx.drawImage(photo, drawX, drawY, drawWidth, drawHeight);
             ctx.restore();
           });
 
           // frame di atas
-          // Uncomment the line below to see rectangle positions for debugging (red rectangles)
-          // photoPositions.forEach(centerX => {
-          //   ctx.strokeStyle = 'red';
-          //   ctx.lineWidth = 3;
-          //   ctx.strokeRect(centerX - photoWidth/2, photoY, photoWidth, photoHeight);
-          // });
-
           ctx.drawImage(frameImg, 0, 0);
 
           const final = canvas.toDataURL("image/png");
