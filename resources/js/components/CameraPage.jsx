@@ -143,9 +143,9 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
 
     // Vertikal positions untuk 3 rectangles (lowered more with increased gaps)
     const positions = [
-      canvas.height * 0.105,  // Photo 1 (top) - moved down more
-      canvas.height * 0.330,  // Photo 2 (middle) - moved down with larger gap
-      canvas.height * 0.555,  // Photo 3 (bottom) - moved down with larger gap
+      canvas.height * 0.140,  // Photo 1 (top) - moved down (increased)
+      canvas.height * 0.365,  // Photo 2 (middle) - moved down (increased)
+      canvas.height * 0.590,  // Photo 3 (bottom) - moved down (increased)
     ];
 
     // Border radius untuk setiap rectangle
