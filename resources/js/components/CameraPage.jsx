@@ -129,23 +129,29 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
         canvas.width = frameImg.width;
         canvas.height = frameImg.height;
 
+        // Disable image smoothing untuk crisp edges
+        ctx.imageSmoothingEnabled = false;
+        ctx.imageSmoothingQuality = 'low';
+
         // Clear canvas dan reset all settings
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#FFFFFF";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = "transparent";
+        ctx.strokeStyle = "#FFFFFF";
         ctx.lineWidth = 0;
+        ctx.lineCap = "butt";
+        ctx.lineJoin = "miter";
 
         // Vertical strip frame settings untuk 3 photo areas
         const photoWidth = canvas.width * 0.8;
         const photoHeight = canvas.height * 0.245;
-        const startX = (canvas.width - photoWidth) / 2; // Center horizontally
+        const startX = Math.round((canvas.width - photoWidth) / 2); // Center horizontally with integer
 
         // Vertikal positions untuk 3 rectangles (lowered more with increased gaps)
         const positions = [
-            canvas.height * 0.185, // Photo 1 (top) - moved down (increased)
-            canvas.height * 0.425, // Photo 2 (middle) - moved down (increased)
-            canvas.height * 0.675, // Photo 3 (bottom) - moved down (increased)
+            Math.round(canvas.height * 0.185), // Photo 1 (top) - moved down (increased)
+            Math.round(canvas.height * 0.425), // Photo 2 (middle) - moved down (increased)
+            Math.round(canvas.height * 0.675), // Photo 3 (bottom) - moved down (increased)
         ];
 
         // Border radius untuk setiap rectangle
@@ -166,53 +172,57 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
                     imgs.forEach((photo, index) => {
                         const x = startX;
                         const y = positions[index];
+                        const width = Math.round(photoWidth);
+                        const height = Math.round(photoHeight);
 
                         // Clip dengan rounded rectangle sesuai position
                         ctx.save();
 
                         // Reset stroke settings untuk menghindari random lines
-                        ctx.strokeStyle = "transparent";
+                        ctx.strokeStyle = "#FFFFFF";
                         ctx.lineWidth = 0;
+                        ctx.lineCap = "butt";
+                        ctx.lineJoin = "miter";
 
                         ctx.beginPath();
 
                         if (index === 0) {
                             // Top: rounded top corners only
                             ctx.moveTo(x + cornerRadius, y);
-                            ctx.lineTo(x + photoWidth - cornerRadius, y);
+                            ctx.lineTo(x + width - cornerRadius, y);
                             ctx.quadraticCurveTo(
-                                x + photoWidth,
+                                x + width,
                                 y,
-                                x + photoWidth,
+                                x + width,
                                 y + cornerRadius,
                             );
-                            ctx.lineTo(x + photoWidth, y + photoHeight);
-                            ctx.lineTo(x, y + photoHeight);
+                            ctx.lineTo(x + width, y + height);
+                            ctx.lineTo(x, y + height);
                             ctx.lineTo(x, y + cornerRadius);
                             ctx.quadraticCurveTo(x, y, x + cornerRadius, y);
                         } else if (index === 1) {
                             // Middle: no rounded corners (straight rectangle)
-                            ctx.rect(x, y, photoWidth, photoHeight);
+                            ctx.rect(x, y, width, height);
                         } else {
                             // Bottom: rounded bottom corners only
                             ctx.moveTo(x, y);
-                            ctx.lineTo(x + photoWidth, y);
+                            ctx.lineTo(x + width, y);
                             ctx.lineTo(
-                                x + photoWidth,
-                                y + photoHeight - cornerRadius,
+                                x + width,
+                                y + height - cornerRadius,
                             );
                             ctx.quadraticCurveTo(
-                                x + photoWidth,
-                                y + photoHeight,
-                                x + photoWidth - cornerRadius,
-                                y + photoHeight,
+                                x + width,
+                                y + height,
+                                x + width - cornerRadius,
+                                y + height,
                             );
-                            ctx.lineTo(x + cornerRadius, y + photoHeight);
+                            ctx.lineTo(x + cornerRadius, y + height);
                             ctx.quadraticCurveTo(
                                 x,
-                                y + photoHeight,
+                                y + height,
                                 x,
-                                y + photoHeight - cornerRadius,
+                                y + height - cornerRadius,
                             );
                             ctx.lineTo(x, y);
                         }
@@ -222,23 +232,25 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
 
                         // Calculate photo dimensions using "cover" style scaling
                         const photoAspect = photo.width / photo.height;
-                        const frameAspect = photoWidth / photoHeight;
+                        const frameAspect = width / height;
 
                         let drawWidth, drawHeight, drawX, drawY;
 
                         if (photoAspect > frameAspect) {
                             // Photo is wider than the frame
-                            drawWidth = photoWidth;
-                            drawHeight = photoWidth / photoAspect;
+                            drawWidth = width;
+                            drawHeight = width / photoAspect;
                         } else {
                             // Photo is taller than the frame
-                            drawWidth = photoHeight * photoAspect;
-                            drawHeight = photoHeight;
+                            drawWidth = height * photoAspect;
+                            drawHeight = height;
                         }
 
-                        // Center the photo within the rectangle
-                        drawX = x + (photoWidth - drawWidth) / 2;
-                        drawY = y + (photoHeight - drawHeight) / 2;
+                        // Center the photo within the rectangle dan round coordinates
+                        drawX = Math.round(x + (width - drawWidth) / 2);
+                        drawY = Math.round(y + (height - drawHeight) / 2);
+                        drawWidth = Math.round(drawWidth);
+                        drawHeight = Math.round(drawHeight);
 
                         ctx.drawImage(
                             photo,
