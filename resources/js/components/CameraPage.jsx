@@ -130,14 +130,15 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.height = frameImg.height;
 
     // Circular frame settings - adjust these based on your frame design
-    const circleRadius = Math.min(canvas.width, canvas.height) * 0.28; // Radius for photo circles
+    const circleDiameter = Math.min(canvas.width, canvas.height) * 0.44; // Diameter for photo circles
+    const circleRadius = circleDiameter / 2;
     const centerX = canvas.width / 2; // Center horizontally
 
     // Vertical positions for 3 photo circles (adjust these percentages as needed)
     const circleCenters = [
-      canvas.height * 0.22,  // Top photo center
+      canvas.height * 0.20,  // Top photo center
       canvas.height * 0.50,  // Middle photo center
-      canvas.height * 0.78,  // Bottom photo center
+      canvas.height * 0.80,  // Bottom photo center
     ];
 
     const imgs = photoList.map((src) => {
@@ -162,25 +163,26 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
             ctx.closePath();
             ctx.clip();
 
-            // Calculate photo dimensions to maintain aspect ratio while filling the circle
+            // Calculate photo dimensions using "cover" style scaling
+            // This ensures the photo completely fills the circle without distortion
             const photoAspect = photo.width / photo.height;
-            const diameter = circleRadius * 2;
+            const circleAspect = 1; // Circle has 1:1 aspect ratio
 
             let drawWidth, drawHeight, drawX, drawY;
 
-            if (photoAspect > 1) {
-              // Wider photo
-              drawHeight = diameter;
-              drawWidth = diameter * photoAspect;
-              drawX = centerX - drawWidth / 2;
-              drawY = centerY - diameter / 2;
+            if (photoAspect > circleAspect) {
+              // Photo is wider than the circle
+              drawWidth = circleDiameter * photoAspect;
+              drawHeight = circleDiameter;
             } else {
-              // Taller photo
-              drawWidth = diameter;
-              drawHeight = diameter / photoAspect;
-              drawX = centerX - diameter / 2;
-              drawY = centerY - drawHeight / 2;
+              // Photo is taller than the circle
+              drawWidth = circleDiameter;
+              drawHeight = circleDiameter / photoAspect;
             }
+
+            // Center the photo within the circle
+            drawX = centerX - drawWidth / 2;
+            drawY = centerY - drawHeight / 2;
 
             ctx.drawImage(
               photo,
@@ -193,6 +195,9 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
           });
 
           // frame di atas
+          // Uncomment the line below to see circle positions for debugging (red circles)
+          // circleCenters.forEach(y => { ctx.strokeStyle = 'red'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(centerX, y, circleRadius, 0, Math.PI * 2); ctx.stroke(); });
+
           ctx.drawImage(frameImg, 0, 0);
 
           const final = canvas.toDataURL("image/png");
