@@ -129,16 +129,18 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
     canvas.width = frameImg.width;
     canvas.height = frameImg.height;
 
-    // Circular frame settings - adjust these based on your frame design
-    const circleDiameter = Math.min(canvas.width, canvas.height) * 0.44; // Diameter for photo circles
-    const circleRadius = circleDiameter / 2;
-    const centerX = canvas.width / 2; // Center horizontally
+    // Horizontal strip frame settings - adjust these based on your frame design
+    // The frame has 3 rectangular openings arranged horizontally
+    const photoCount = 3;
+    const photoWidth = canvas.width * 0.28; // Width of each photo rectangle
+    const photoHeight = canvas.height * 0.35; // Height of each photo rectangle
+    const photoY = canvas.height * 0.45; // Vertical position of photos
 
-    // Vertical positions for 3 photo circles (adjust these percentages as needed)
-    const circleCenters = [
-      canvas.height * 0.20,  // Top photo center
-      canvas.height * 0.50,  // Middle photo center
-      canvas.height * 0.80,  // Bottom photo center
+    // Horizontal positions for 3 photo rectangles
+    const photoPositions = [
+      canvas.width * 0.11,  // Left photo center
+      canvas.width * 0.50,  // Middle photo center
+      canvas.width * 0.88,  // Right photo center
     ];
 
     const imgs = photoList.map((src) => {
@@ -154,35 +156,36 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
         loaded++;
         if (loaded === 3) {
           imgs.forEach((photo, index) => {
-            const centerY = circleCenters[index];
+            const photoCenterX = photoPositions[index];
+            const photoX = photoCenterX - photoWidth / 2;
 
-            // Create circular clipping region for each photo
+            // Create rectangular clipping region for each photo
             ctx.save();
             ctx.beginPath();
-            ctx.arc(centerX, centerY, circleRadius, 0, Math.PI * 2);
+            ctx.rect(photoX, photoY, photoWidth, photoHeight);
             ctx.closePath();
             ctx.clip();
 
             // Calculate photo dimensions using "cover" style scaling
-            // This ensures the photo completely fills the circle without distortion
+            // This ensures the photo completely fills the rectangle without distortion
             const photoAspect = photo.width / photo.height;
-            const circleAspect = 1; // Circle has 1:1 aspect ratio
+            const frameAspect = photoWidth / photoHeight;
 
             let drawWidth, drawHeight, drawX, drawY;
 
-            if (photoAspect > circleAspect) {
-              // Photo is wider than the circle
-              drawWidth = circleDiameter * photoAspect;
-              drawHeight = circleDiameter;
+            if (photoAspect > frameAspect) {
+              // Photo is wider than the frame
+              drawWidth = photoWidth * photoAspect;
+              drawHeight = photoHeight;
             } else {
-              // Photo is taller than the circle
-              drawWidth = circleDiameter;
-              drawHeight = circleDiameter / photoAspect;
+              // Photo is taller than the frame
+              drawWidth = photoWidth;
+              drawHeight = photoWidth / photoAspect;
             }
 
-            // Center the photo within the circle
-            drawX = centerX - drawWidth / 2;
-            drawY = centerY - drawHeight / 2;
+            // Center the photo within the rectangle
+            drawX = photoCenterX - drawWidth / 2;
+            drawY = photoY + (photoHeight - drawHeight) / 2;
 
             ctx.drawImage(
               photo,
@@ -195,8 +198,12 @@ export default function CameraPage({ selectedFrame, onPhotoTaken, onBack }) {
           });
 
           // frame di atas
-          // Uncomment the line below to see circle positions for debugging (red circles)
-          // circleCenters.forEach(y => { ctx.strokeStyle = 'red'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(centerX, y, circleRadius, 0, Math.PI * 2); ctx.stroke(); });
+          // Uncomment the line below to see rectangle positions for debugging (red rectangles)
+          // photoPositions.forEach(centerX => {
+          //   ctx.strokeStyle = 'red';
+          //   ctx.lineWidth = 3;
+          //   ctx.strokeRect(centerX - photoWidth/2, photoY, photoWidth, photoHeight);
+          // });
 
           ctx.drawImage(frameImg, 0, 0);
 
