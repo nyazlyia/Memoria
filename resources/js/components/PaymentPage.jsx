@@ -84,7 +84,7 @@ export default function PaymentPage({
             <img
               src={capturedPhoto}
               alt="final"
-              className="mx-auto mt-4 w-64 border-2 border-[var(--maroon)]"
+              className="mx-auto mt-4 w-64"
             />
           </div>
         ) : (

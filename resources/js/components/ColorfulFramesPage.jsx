@@ -5,7 +5,7 @@ export default function FramesPage({ theme, onBack }) {
   const [selected, setSelected] = useState(null);
 
   // ambil semua gambar dari assets
-  const images = import.meta.glob("../assets/**/*.{png,jpg,jpeg}", {
+  const images = import.meta.glob("../assets/**/*.png", {
     eager: true,
   });
 
